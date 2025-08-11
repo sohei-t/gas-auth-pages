@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ログイン - 動画視聴研修システム</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .login-container {
+      background: white;
+      padding: 48px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+    }
+    
+    .logo-container {
+      margin-bottom: 32px;
+    }
+    
+    .company-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 36px;
+      font-weight: bold;
+    }
+    
+    h1 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .company-name {
+      color: #666;
+      font-size: 18px;
+      margin-bottom: 32px;
+    }
+    
+    .description {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    
+    .google-btn {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+    }
+    
+    .google-btn:hover {
+      background: #357ae8;
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+      transform: translateY(-1px);
+    }
+    
+    .google-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    
+    .google-icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .loading {
+      display: none;
+      margin-top: 24px;
+    }
+    
+    .loading-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #666;
+    }
+    
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #4285f4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 24px;
+      display: none;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #e0e0e0;
+      color: #999;
+      font-size: 12px;
+    }
+    
+    .security-notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+      color: #666;
+      font-size: 13px;
+    }
+    
+    .lock-icon {
+      width: 14px;
+      height: 14px;
+      fill: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo-container">
+      <div class="company-logo" id="companyLogo">🎓</div>
+      <h1>動画視聴研修システム</h1>
+      <p class="company-name" id="companyName">ログイン</p>
+    </div>
+    
+    <p class="description">
+      研修動画の視聴と学習管理を行うシステムです。<br>
+      Googleアカウントでログインしてください。
+    </p>
+    
+    <button class="google-btn" onclick="signInWithGoogle()" id="loginBtn">
+      <svg class="google-icon" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Googleでログイン
+    </button>
+    
+    <div class="loading" id="loading">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <span>ログイン処理中...</span>
+      </div>
+    </div>
+    
+    <div class="error" id="error"></div>
+    
+    <div class="security-notice">
+      <svg class="lock-icon" viewBox="0 0 24 24">
+        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+      </svg>
+      <span>安全な接続で保護されています</span>
+    </div>
+    
+    <div class="footer">
+      <p>&copy; 2025 動画視聴研修システム. All rights reserved.</p>
+    </div>
+  </div>
+
+  <script>
+    // ===========================
+    // Firebase設定（設定完了）
+    // ===========================
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBI4RSyx1pFNZE-WGfK-38nAwnaIS5e4Mg",
+      authDomain: "gas-auth-system.firebaseapp.com",
+      projectId: "gas-auth-system",
+      storageBucket: "gas-auth-system.firebasestorage.app",
+      messagingSenderId: "1073104288331",
+      appId: "1:1073104288331:web:f5ea9eba21bd4a055dabce"
+    };
+    
+    // 顧客管理マスターGASのURL（後で設定）
+    const MASTER_GAS_URL = 'https://script.google.com/macros/s/YOUR_MASTER_GAS_ID/exec';
+    
+    // ===========================
+    // 実装コード
+    // ===========================
+    
+    // URLパラメータから顧客ID取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('client');
+    
+    // 顧客情報を取得して表示
+    async function loadClientInfo() {
+      if (!clientId) {
+        document.getElementById('companyName').textContent = '無効なアクセス';
+        document.getElementById('loginBtn').disabled = true;
+        showError('有効な顧客IDが指定されていません。管理者にお問い合わせください。');
+        return false;
+      }
+      
+      try {
+        // 顧客情報取得（オプション）
+        const response = await fetch(`${MASTER_GAS_URL}?action=getClientInfo&clientId=${clientId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('companyName').textContent = data.companyName;
+          if (data.logo) {
+            document.getElementById('companyLogo').textContent = data.logo;
+          }
+        }
+        return true;
+      } catch (error) {
+        // 顧客情報取得失敗してもログインは継続
+        console.log('顧客情報の取得をスキップ:', error);
+        return true;
+      }
+    }
+    
+    // ページ読み込み時の初期化
+    window.onload = async () => {
+      const isValid = await loadClientInfo();
+      if (isValid) {
+        // Firebase初期化
+        firebase.initializeApp(firebaseConfig);
+        
+        // 既にログイン済みかチェック
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            // 既にログイン済みの場合は自動的に処理
+            handleAuthSuccess(user);
+          }
+        });
+      }
+    };
+    
+    // Googleログイン処理
+    async function signInWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const button = document.getElementById('loginBtn');
+      const loading = document.getElementById('loading');
+      const errorDiv = document.getElementById('error');
+      
+      // UI状態変更
+      button.disabled = true;
+      loading.style.display = 'block';
+      errorDiv.style.display = 'none';
+      
+      try {
+        // Googleログインポップアップ
+        const result = await firebase.auth().signInWithPopup(provider);
+        const user = result.user;
+        
+        // 認証成功処理
+        await handleAuthSuccess(user);
+        
+      } catch (error) {
+        console.error('ログインエラー:', error);
+        showError(`ログインに失敗しました: ${error.message}`);
+        button.disabled = false;
+        loading.style.display = 'none';
+      }
+    }
+    
+    // 認証成功時の処理
+    async function handleAuthSuccess(user) {
+      try {
+        // 認証トークンを取得
+        const idToken = await user.getIdToken();
+        
+        // 認証データを作成
+        const authData = {
+          email: user.email,
+          uid: user.uid,
+          name: user.displayName,
+          photoURL: user.photoURL,
+          clientId: clientId,
+          idToken: idToken,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Base64エンコード
+        const encodedAuth = btoa(JSON.stringify(authData));
+        
+        // マスターGAS経由でリダイレクト
+        window.location.href = `${MASTER_GAS_URL}?action=authenticate&auth=${encodedAuth}`;
+        
+      } catch (error) {
+        console.error('認証処理エラー:', error);
+        showError('認証処理中にエラーが発生しました。');
+      }
+    }
+    
+    // エラー表示
+    function showError(message) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+    
+    // ログアウト処理（必要に応じて）
+    async function signOut() {
+      try {
+        await firebase.auth().signOut();
+        console.log('ログアウトしました');
+      } catch (error) {
+        console.error('ログアウトエラー:', error);
+      }
+    }
+  </script>
+</body>
+</html>
