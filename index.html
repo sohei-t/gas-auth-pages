@@ -111,8 +111,8 @@
       "appId": "1:1073104288331:web:f5ea9eba21bd4a055dabce"
     };
     
-    // 顧客管理マスターGASのURL（自動生成）
-    const MASTER_GAS_URL = 'https://script.google.com/macros/s/AKfycbxUiiGqZGCogtvlG3OQlw7tYs_8hArm5eeqlGlE1bc/exec';
+    // 認証GASのURL（認証専用システム）
+    const AUTH_GAS_URL = 'https://script.google.com/macros/s/AKfycbymmvYdWD06eHAgp8NRDjSL_RPPZqVBwG8TZ9t6X8-PmghTG-GXnBYzfqjjTwzMu6fp/exec';
     
     // URLパラメータから顧客IDを取得
     const urlParams = new URLSearchParams(window.location.search);
@@ -142,12 +142,13 @@
         // IDトークンを取得
         const idToken = await user.getIdToken();
         
-        // 顧客管理マスターGASにリダイレクト
-        const redirectUrl = MASTER_GAS_URL + 
-          '?action=authenticate' +
-          '&token=' + encodeURIComponent(idToken) +
+        // 認証GASにリダイレクト
+        const redirectUrl = AUTH_GAS_URL + 
+          '?action=verify' +
+          '&idToken=' + encodeURIComponent(idToken) +
           '&customerId=' + encodeURIComponent(customerId) +
-          '&email=' + encodeURIComponent(user.email);
+          '&email=' + encodeURIComponent(user.email) +
+          '&name=' + encodeURIComponent(user.displayName || '');
         
         window.location.href = redirectUrl;
         
